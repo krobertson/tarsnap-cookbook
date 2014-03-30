@@ -29,11 +29,13 @@ python_pip "PyYAML" do
   action :install
 end
 
+tarsnapper_dir = "/usr/local/bin"
+
 python_pip "tarsnapper" do
   package_name "git+git://github.com/miracle2k/tarsnapper#egg=tarsnapper"
 
   action :install
-  not_if { ::File.exists?("/usr/local/bin/tarsnapper") }
+  not_if { ::File.exists?("#{tarsnapper_dir}/tarsnapper") }
 end
 
 template "tarsnapper.conf" do
@@ -48,6 +50,6 @@ cron "tarsnapper" do
   %w{minute hour day month weekday}.each {|time|
     self.send(time, node['tarsnapper']['cron'][time]) unless node['tarsnapper']['cron'][time].nil?
   }
-  command "tarsnapper -c #{node['tarsnap']['conf_dir']}/tarsnapper.conf make"
+  command "PATH=\"#{tarsnapper_dir}:$PATH\" tarsnapper -c #{node['tarsnap']['conf_dir']}/tarsnapper.conf make"
   only_if { node['tarsnapper']['cron']['setup'] }
 end
